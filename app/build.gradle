@@ -1,0 +1,59 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Version and signing details live in two small files at the project root so that
+// this Gradle build and build.sh always produce the same app.
+def versionProps = new Properties()
+rootProject.file('version.properties').withInputStream { versionProps.load(it) }
+// The signing key is not in the repository. Put it in keystore/ (see README, "Signing key").
+def keystoreProps = new Properties()
+def keystoreFile = rootProject.file('keystore/keystore.properties')
+def hasKey = keystoreFile.exists()
+if (hasKey) keystoreFile.withInputStream { keystoreProps.load(it) }
+
+android {
+    namespace 'com.gasstation.manager'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.gasstation.manager'
+        minSdk versionProps['minSdk'] as int
+        targetSdk versionProps['targetSdk'] as int
+        versionCode versionProps['versionCode'] as int
+        versionName versionProps['versionName']
+    }
+
+    signingConfigs {
+        if (hasKey) {
+            release {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Without the key the release APK comes out unsigned and cannot be installed.
+            if (hasKey) signingConfig signingConfigs.release
+        }
+        debug {
+            // Same key as release, so a debug build can be installed over a release build without losing data.
+            if (hasKey) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}

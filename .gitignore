@@ -1,0 +1,13 @@
+build/
+app/build/
+.gradle/
+local.properties
+*.idsig
+node_modules/
+tests/out/
+.idea/
+*.iml
+
+# Signing key and its passwords are never committed. See README "Signing key".
+keystore/*.jks
+keystore/keystore.properties
